@@ -1,0 +1,412 @@
+/* All styling for the Animator app. Its code only attaches class names.
+
+   The look: a hand-drawn notebook. Soft lavender-grey paper, deep indigo ink,
+   a typewriter-style monospace font in lowercase, dotted grids, and slightly
+   wobbly "sketched" borders. */
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+:root {
+  --paper: #e4e3e9;       /* the page */
+  --card: #efeef4;        /* raised cards */
+  --sheet: #f6f5fa;       /* the drawing surface */
+  --wash: #d7d4ea;        /* lavender fills (inputs, editor panel) */
+  --ink: #2a06d2;         /* primary indigo */
+  --ink-hover: #3a1ae0;
+  --ink-soft: #5b48d8;    /* secondary indigo text */
+  --ink-faint: #9a92d6;   /* faint indigo (dots, hints) */
+  --text: #1c1b24;        /* body text */
+  --muted: #9b99a8;       /* grey text, like "skip" */
+  --line: #cfccdf;        /* hairlines */
+  --shadow: 0 10px 30px rgba(42, 6, 210, 0.08), 0 2px 6px rgba(28, 27, 36, 0.06);
+  /* A wobbly, hand-drawn corner shape for buttons and boxes. */
+  --sketchy: 14px 10px 13px 9px / 9px 13px 10px 14px;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--paper); }
+
+/* ── Layout: two columns ─────────────────────────────────────────────────── */
+
+.app {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background: var(--paper);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  text-transform: lowercase;
+}
+
+/* Left column: the code editor. */
+.code-col {
+  width: 42%;
+  min-width: 320px;
+  max-width: 720px;
+  flex-shrink: 0;
+  display: flex;
+  padding: 14px 0 14px 14px;
+  background: var(--paper);
+}
+
+/* The code column stays in the DOM when collapsed, so CodeMirror keeps its
+   state; hiding it gives the right column the full width. */
+.app.code-hidden .code-col { display: none; }
+
+/* A small icon button (the code pane's collapse and reveal toggles). */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card);
+  color: var(--ink);
+  border: 1.5px solid var(--ink-faint);
+  border-radius: var(--sketchy);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1;
+  padding: 5px 9px;
+}
+.icon-btn:hover { border-color: var(--ink); background: var(--sheet); }
+
+/* ── Code panel (left column) ───────────────────────────────────────────── */
+
+.code-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--card);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 10px;
+}
+.code-title {
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 500;
+}
+/* "draw code" gets a little indigo pencil after it. */
+.code-title::after {
+  content: " ✎";
+  color: var(--ink);
+}
+
+/* Wrapper holding the editor. */
+.code-editor-wrap {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  margin: 0 12px;
+}
+/* CodeMirror mount node: grows to fill the panel. */
+.code-editor {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  background: var(--wash);
+  border-radius: 16px;
+  text-transform: none;
+}
+.code-editor .cm-editor { width: 100%; height: 100%; }
+
+/* Collapsible reference of the built-ins available to draw functions. */
+.reference {
+  margin: 10px 12px 12px;
+  border: 1.5px dashed var(--ink-faint);
+  border-radius: var(--sketchy);
+  background: var(--sheet);
+  overflow: hidden;
+  text-transform: none;
+}
+.reference-summary {
+  padding: 7px 12px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: lowercase;
+  user-select: none;
+}
+.reference-summary:hover { color: var(--ink); }
+.reference-body {
+  padding: 4px 12px 10px;
+  border-top: 1px dashed var(--line);
+}
+.reference-group { margin-top: 8px; }
+.reference-group-title {
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: lowercase;
+  margin-bottom: 4px;
+}
+.reference-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 1px 0;
+}
+.reference-sig {
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre;
+}
+.reference-desc { color: var(--muted); font-size: 11px; }
+
+/* ── Animation area (right column) ──────────────────────────────────────── */
+
+/* The right column: the drawing toolbar above the animation. */
+.anim-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Drawing library and brush controls. */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  padding: 14px 18px 8px;
+}
+.toolbar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 13px;
+}
+.drawing-select {
+  appearance: none;
+  background: var(--card)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%232a06d2' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
+  color: var(--ink);
+  border: 1.5px solid var(--ink-faint);
+  border-radius: var(--sketchy);
+  padding: 6px 30px 6px 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  /* Show drawing names exactly as they were typed. */
+  text-transform: none;
+  cursor: pointer;
+}
+.drawing-select:hover { border-color: var(--ink); }
+.drawing-select:focus { outline: 2px solid var(--ink-faint); outline-offset: 1px; }
+.drawing-select:disabled { opacity: 0.5; cursor: default; }
+.save-status {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Buttons: soft lavender with indigo ink, sketched corners. */
+.btn {
+  background: var(--card);
+  color: var(--ink);
+  border: 1.5px solid var(--ink-faint);
+  border-radius: var(--sketchy);
+  padding: 6px 14px;
+  font-family: var(--mono);
+  font-size: 13px;
+  text-transform: lowercase;
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) { border-color: var(--ink); background: var(--sheet); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+/* The main action: solid indigo with white type. */
+.btn-primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+  border-radius: 10px;
+  padding: 7px 22px;
+  letter-spacing: 0.03em;
+}
+.btn-primary:hover:not(:disabled) { background: var(--ink-hover); border-color: var(--ink-hover); }
+
+/* The shape_slider and speed sliders, under the drawing toolbar. */
+.sliders {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  padding: 6px 18px 10px;
+}
+.slider-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 220px;
+  max-width: 360px;
+}
+.slider-control .toolbar-label { width: 3.5em; }
+.slider {
+  flex: 1;
+  min-width: 100px;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+.slider-value {
+  min-width: 3.5em;
+  text-align: right;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+/* Sketch mode. */
+.sketch-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.sketch-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.name-input {
+  width: 12em;
+  background: var(--wash);
+  color: var(--ink);
+  border: 1.5px solid transparent;
+  border-radius: var(--sketchy);
+  padding: 6px 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  text-transform: none;
+}
+.name-input::placeholder { color: var(--ink-faint); }
+.name-input:focus { outline: none; border-color: var(--ink); }
+
+/* ── The drawing ───────────────────────────────────────────────────────── */
+
+.canvas-area {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 18px 18px;
+  background: var(--paper);
+  container-type: size;
+}
+
+/* A centred square that fits the (possibly non-square) animation area. Give your
+   <canvas> this class, so that drawings aren't stretched. It sits on a card
+   of dotted notebook paper. */
+.canvas {
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  border-radius: 24px;
+  background-color: var(--sheet);
+  background-image: radial-gradient(circle, var(--ink-faint) 1.1px, transparent 1.4px);
+  background-size: 26px 26px;
+  background-position: 13px 13px;
+  box-shadow: var(--shadow);
+}
+
+/* The canvas while sketching: a blank sheet with a dashed, hand-drawn edge,
+   and no scrolling or zooming when drawn on by touch. */
+.canvas.sketching {
+  cursor: crosshair;
+  touch-action: none;
+  background-color: #fbfaff;
+  background-image: none;
+  outline: 2px dashed var(--ink-faint);
+  outline-offset: -8px;
+}
+.sketch-hint {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--wash);
+  color: var(--ink-soft);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+/* Shown over the canvas while the code is broken; the last working drawing
+   stays visible behind it. */
+.error-banner {
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  bottom: 30px;
+  z-index: 10;
+  max-height: 40%;
+  overflow: auto;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--sketchy);
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+.error-title {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+.error-title::before { content: "✗ "; }
+.error-message {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-transform: none;
+}
+
+/* The interpreter's List(Path) (or its error), shown as text before the
+   animation pane is built. */
+.output {
+  align-self: stretch;
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+/* Leave room for the reveal button, which only overlays this pane while the
+   code column is hidden. */
+.app.code-hidden .output { padding-top: 48px; }
+
+/* Button that reveals the code column again when it is hidden. */
+.reveal-code {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+}
